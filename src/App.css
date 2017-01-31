@@ -28,6 +28,9 @@
   display: inline-block;
   text-align: left;
 }
+.errorMessage {
+  color: red;
+}
 
 input {
   font-size: 20px
