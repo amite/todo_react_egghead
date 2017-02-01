@@ -1,9 +1,10 @@
 import React, { Component } from 'react';
 import logo from './logo.svg';
 import './App.css';
+import {pipe, partial} from './lib/utils'
 
-import {TodoForm, TodoList} from './components/todo';
-import {addTodo, generateId} from './lib/todoHelpers'
+import {TodoForm, TodoList, Footer} from './components/todo';
+import {addTodo, generateId, findById, updateTodo, toggleTodo, removeTodo, filterTodos} from './lib/todoHelpers'
 
 class App extends Component {
 
@@ -16,6 +17,16 @@ class App extends Component {
     ],
     currentTodo: '',
     errorMessage: ''
+  }
+
+  static contextTypes = {
+    route: React.PropTypes.string
+  }
+
+  handleRemove = (id, evt) => {
+    evt.preventDefault()
+    const updatedTodos = removeTodo(this.state.todos, id)
+    this.setState({ todos: updatedTodos })
   }
   
   handleInputChange = (evt) => {
@@ -40,8 +51,16 @@ class App extends Component {
     })
   }
 
+  handleToggle = (id) => {
+    const getUpdatedTodos = pipe(findById, toggleTodo, partial(updateTodo, this.state.todos))
+    const updatedTodos = getUpdatedTodos(id, this.state.todos)
+    this.setState({ todos: updatedTodos })
+  }
+
   render() {
     const submitHandler = this.state.currentTodo ? this.handleSubmit : this.handleEmptySubmit
+    const displayTodos = filterTodos(this.state.todos, this.context.route)
+
     return (
       <div className="App">
         <header className="App-header">
@@ -52,8 +71,11 @@ class App extends Component {
           <TodoForm handleInputChange={this.handleInputChange} 
           currentTodo={this.state.currentTodo}
           errorMessage={this.state.errorMessage}
-          handleSubmit={submitHandler}/>
-          <TodoList todos={this.state.todos} />
+          handleSubmit={submitHandler} />
+          <TodoList handleToggle={this.handleToggle}
+                    handleRemove={this.handleRemove}
+                    todos={displayTodos} />
+          <Footer />
         </section>
       </div>
     );

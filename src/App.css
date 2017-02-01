@@ -28,9 +28,6 @@
   display: inline-block;
   text-align: left;
 }
-.errorMessage {
-  color: red;
-}
 
 input {
   font-size: 20px
@@ -42,4 +39,30 @@ ul {
 
 li {
   list-style-type: none;
+}
+
+li span.delete-item {
+  visibility: hidden;
+}
+
+span.delete-item a {
+  text-decoration: none;
+  color:red;
+}
+
+li:hover span.delete-item {
+  visibility: visible;
+}
+
+.error {
+  color:red;
+}
+
+.Footer a {
+  padding-left:5px;
+  padding-right:5px;
+}
+
+.Footer a.active {
+  font-weight: bold;
 }
