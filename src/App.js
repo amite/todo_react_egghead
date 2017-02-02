@@ -5,28 +5,32 @@ import {pipe, partial} from './lib/utils'
 
 import {TodoForm, TodoList, Footer} from './components/todo';
 import {addTodo, generateId, findById, updateTodo, toggleTodo, removeTodo, filterTodos} from './lib/todoHelpers'
+import { loadTodos, createTodo, saveTodo, destroyTodo } from './lib/todoService';
 
 class App extends Component {
 
   // es6 property initializer syntax
   state = {
-    todos: [
-      {id: 1, name: 'Learn JSX', isComplete: true},
-      {id: 2, name: 'Build an awesome app', isComplete: false},
-      {id: 3, name: 'Ship It', isComplete: false}
-    ],
+    todos: [],
     currentTodo: '',
-    errorMessage: ''
+    errorMessage: '',
+    message: ''
   }
 
   static contextTypes = {
     route: React.PropTypes.string
   }
 
+  componentDidMount() {
+    loadTodos().then(todos => this.setState({todos}))
+  }
+
   handleRemove = (id, evt) => {
     evt.preventDefault()
     const updatedTodos = removeTodo(this.state.todos, id)
     this.setState({ todos: updatedTodos })
+    destroyTodo(id)
+      .then(() => this.showTempMessage('Todo Removed'))
   }
   
   handleInputChange = (evt) => {
@@ -42,6 +46,13 @@ class App extends Component {
       currentTodo: '',
       errorMessage: ''
     })
+    createTodo(newTodo)
+      .then(() => this.showTempMessage('Todos Added'))
+  }
+
+  showTempMessage = (msg) => {
+    this.setState({message: msg})
+    setTimeout(() => this.setState({ message: ''}), 1000)
   }
 
   handleEmptySubmit = (evt) => {
@@ -52,9 +63,15 @@ class App extends Component {
   }
 
   handleToggle = (id) => {
-    const getUpdatedTodos = pipe(findById, toggleTodo, partial(updateTodo, this.state.todos))
-    const updatedTodos = getUpdatedTodos(id, this.state.todos)
+    const getToggledTodo = pipe(findById, toggleTodo)
+    const updated = getToggledTodo(id, this.state.todos)
+
+    const getUpdatedTodos = partial(updateTodo, this.state.todos)
+    const updatedTodos = getUpdatedTodos(updated)
+
     this.setState({ todos: updatedTodos })
+    saveTodo(updated)
+      .then(() => this.showTempMessage('Todo Updated'))
   }
 
   render() {
@@ -64,6 +81,7 @@ class App extends Component {
     return (
       <div className="App">
         <header className="App-header">
+          {this.state.message && <p>{this.state.message}</p>}
           <img src={logo} className="App-logo" alt="logo" />
           <h2>React Todos</h2>
         </header>
